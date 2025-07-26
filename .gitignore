@@ -1,0 +1,12 @@
+# Ignorar node_modules
+node_modules/
+
+# Archivos de producción
+dist/
+build/
+
+# Entornos locales y temporales
+.env
+*.log
+.DS_Store
+npm-debug.log*
