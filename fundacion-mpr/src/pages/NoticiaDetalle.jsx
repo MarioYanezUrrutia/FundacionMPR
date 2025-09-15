@@ -12,7 +12,7 @@ const NoticiaDetalle = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-800 mb-4">Noticia no encontrada</h2>
-          <Link to="/noticias" className="text-primary hover:text-blue-600">
+          <Link to="/noticias" style={{color: '#A7C7E7'}} className="hover:underline">
             Volver a noticias
           </Link>
         </div>
@@ -26,7 +26,8 @@ const NoticiaDetalle = () => {
       <div className="container mx-auto px-4 py-6">
         <Link 
           to="/noticias"
-          className="inline-flex items-center text-primary hover:text-blue-600 font-medium transition-colors"
+          className="inline-flex items-center font-medium transition-colors"
+          style={{color: '#A7C7E7'}}
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Volver a noticias
@@ -44,7 +45,7 @@ const NoticiaDetalle = () => {
               className="w-full h-full object-cover"
             />
             <div className="absolute top-6 left-6">
-              <span className="bg-primary text-white px-4 py-2 rounded-full text-sm font-medium">
+              <span className="text-white px-4 py-2 rounded-full text-sm font-medium" style={{backgroundColor: '#A7C7E7'}}>
                 {noticia.categoria}
               </span>
             </div>

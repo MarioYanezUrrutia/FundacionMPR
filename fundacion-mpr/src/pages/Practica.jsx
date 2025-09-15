@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { GraduationCap, User, Mail, Phone, Calendar, FileText, Send, BookOpen } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { ArrowLeft, GraduationCap, BookOpen, Users, Activity, Palette, Brain, Send, Upload } from 'lucide-react';
 
 const Practica = () => {
   const [formData, setFormData] = useState({
@@ -7,186 +8,205 @@ const Practica = () => {
     apellido: '',
     email: '',
     telefono: '',
-    rut: '',
+    edad: '',
     universidad: '',
     carrera: '',
     semestre: '',
-    area_practica: '',
-    duracion: '',
-    fecha_inicio: '',
-    fecha_termino: '',
-    horas_semanales: '',
-    supervisor_academico: '',
-    email_supervisor: '',
+    area: '',
+    otraArea: '',
+    horasRequeridas: '',
+    fechaInicio: '',
+    fechaTermino: '',
+    horario: '',
+    dias: [],
+    curriculum: null,
+    cartaPresentacion: null,
+    experiencia: '',
     objetivos: '',
-    habilidades: '',
-    motivacion: '',
-    disponibilidad: ''
+    conocimientos: ''
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState(null);
-
-  const areasPractica = [
-    'Trabajo Social',
-    'Psicología',
-    'Educación',
-    'Comunicaciones',
-    'Administración',
-    'Contabilidad',
-    'Marketing',
-    'Diseño Gráfico',
-    'Informática',
-    'Derecho',
-    'Otra'
-  ];
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    const { name, value, type, checked } = e.target;
+    
+    if (type === 'checkbox') {
+      if (name === 'dias') {
+        setFormData(prev => ({
+          ...prev,
+          dias: checked 
+            ? [...prev.dias, value]
+            : prev.dias.filter(dia => dia !== value)
+        }));
+      }
+    } else if (type === 'file') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: e.target.files[0]
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setIsSubmitting(true);
-    setSubmitStatus(null);
+    
+    // Crear el contenido del correo
+    const subject = 'Nueva postulación de práctica profesional - Fundación MPR';
+    const body = `
+Nueva postulación de práctica profesional recibida:
 
-    try {
-      const response = await fetch('http://localhost:5000/api/practica', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...formData,
-          tipo: 'practica'
-        }),
-      });
+INFORMACIÓN PERSONAL:
+Nombre: ${formData.nombre} ${formData.apellido}
+Email: ${formData.email}
+Teléfono: ${formData.telefono}
+Edad: ${formData.edad}
 
-      if (response.ok) {
-        setSubmitStatus('success');
-        setFormData({
-          nombre: '',
-          apellido: '',
-          email: '',
-          telefono: '',
-          rut: '',
-          universidad: '',
-          carrera: '',
-          semestre: '',
-          area_practica: '',
-          duracion: '',
-          fecha_inicio: '',
-          fecha_termino: '',
-          horas_semanales: '',
-          supervisor_academico: '',
-          email_supervisor: '',
-          objetivos: '',
-          habilidades: '',
-          motivacion: '',
-          disponibilidad: ''
-        });
-      } else {
-        setSubmitStatus('error');
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      setSubmitStatus('error');
-    } finally {
-      setIsSubmitting(false);
+INFORMACIÓN ACADÉMICA:
+Universidad: ${formData.universidad}
+Carrera: ${formData.carrera}
+Semestre: ${formData.semestre}
+
+INFORMACIÓN DE LA PRÁCTICA:
+Área de interés: ${formData.area}
+${formData.area === 'otra' ? `Otra área especificada: ${formData.otraArea}` : ''}
+Horas requeridas: ${formData.horasRequeridas}
+Fecha de inicio: ${formData.fechaInicio}
+Fecha de término: ${formData.fechaTermino}
+
+DISPONIBILIDAD:
+Horario preferido: ${formData.horario}
+Días disponibles: ${formData.dias.length > 0 ? formData.dias.join(', ') : 'Ninguno seleccionado'}
+
+EXPERIENCIA PREVIA:
+${formData.experiencia || 'No especificada'}
+
+OBJETIVOS DE LA PRÁCTICA:
+${formData.objetivos || 'No especificados'}
+
+CONOCIMIENTOS RELEVANTES:
+${formData.conocimientos || 'No especificados'}
+
+DOCUMENTOS ADJUNTOS:
+Currículum: ${formData.curriculum ? formData.curriculum.name : 'No adjuntado'}
+Carta de presentación: ${formData.cartaPresentacion ? formData.cartaPresentacion.name : 'No adjuntada'}
+
+---
+Enviado desde el formulario de práctica profesional de la página web de Fundación MPR
+    `;
+
+    // Crear el enlace mailto
+    const mailtoLink = `mailto:fundacionmprefugio@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    
+    // Abrir el cliente de correo
+    window.location.href = mailtoLink;
+    
+    // Nota sobre archivos adjuntos
+    if (formData.curriculum || formData.cartaPresentacion) {
+      alert('Nota: Por favor, adjunta manualmente tus documentos al correo que se abrirá.');
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header de la página */}
-      <div className="bg-gradient-to-r from-primary to-blue-600 text-white py-16">
-        <div className="container mx-auto px-4">
-          <div className="text-center">
-            <GraduationCap className="w-16 h-16 mx-auto mb-4 text-yellow-300" />
-            <h1 className="text-4xl font-bold mb-4">Práctica Profesional</h1>
-            <p className="text-xl text-blue-100 max-w-2xl mx-auto">
-              Desarrolla tu experiencia profesional mientras contribuyes a transformar vidas. Ofrecemos un ambiente de aprendizaje enriquecedor y significativo.
-            </p>
-          </div>
+      {/* Botón de regreso */}
+      <div className="bg-white shadow-sm">
+        <div className="container mx-auto px-4 py-3">
+          <Link 
+            to="/" 
+            className="inline-flex items-center text-gray-600 hover:text-blue-600 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Volver al inicio
+          </Link>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-          {/* Información sobre prácticas */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-              <h3 className="text-xl font-bold text-gray-800 mb-4">¿Por qué hacer tu práctica con nosotros?</h3>
-              <ul className="space-y-3 text-gray-600">
-                <li className="flex items-start">
-                  <BookOpen className="w-5 h-5 text-primary mt-0.5 mr-3 flex-shrink-0" />
-                  <span>Experiencia real en el tercer sector</span>
-                </li>
-                <li className="flex items-start">
-                  <BookOpen className="w-5 h-5 text-primary mt-0.5 mr-3 flex-shrink-0" />
-                  <span>Supervisión profesional especializada</span>
-                </li>
-                <li className="flex items-start">
-                  <BookOpen className="w-5 h-5 text-primary mt-0.5 mr-3 flex-shrink-0" />
-                  <span>Proyectos con impacto social real</span>
-                </li>
-                <li className="flex items-start">
-                  <BookOpen className="w-5 h-5 text-primary mt-0.5 mr-3 flex-shrink-0" />
-                  <span>Desarrollo de habilidades profesionales</span>
-                </li>
-                <li className="flex items-start">
-                  <BookOpen className="w-5 h-5 text-primary mt-0.5 mr-3 flex-shrink-0" />
-                  <span>Networking en el ámbito social</span>
-                </li>
-              </ul>
-            </div>
+      {/* Header */}
+      <div style={{backgroundColor: '#B5EAD7'}} className="text-white py-16">
+        <div className="container mx-auto px-4 text-center">
+          <GraduationCap className="w-16 h-16 mx-auto mb-4" style={{color: '#FFDAB3'}} />
+          <h1 className="text-4xl font-bold mb-4 text-gray-800">Práctica Profesional</h1>
+          <p className="text-xl text-gray-700 max-w-2xl mx-auto">
+            Desarrolla tu experiencia profesional mientras contribuyes al bienestar de niños y familias vulnerables.
+          </p>
+        </div>
+      </div>
 
-            <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-              <h3 className="text-xl font-bold text-gray-800 mb-4">Áreas Disponibles</h3>
-              <div className="space-y-2 text-sm text-gray-600">
-                <p><span className="font-medium">Trabajo Social:</span> Intervención familiar y comunitaria</p>
-                <p><span className="font-medium">Psicología:</span> Apoyo emocional y evaluaciones</p>
-                <p><span className="font-medium">Educación:</span> Programas pedagógicos</p>
-                <p><span className="font-medium">Comunicaciones:</span> Marketing social y contenido</p>
-                <p><span className="font-medium">Administración:</span> Gestión organizacional</p>
+      <div className="container mx-auto px-4 py-16">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+          {/* Información lateral */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+              <h3 className="text-xl font-bold text-gray-800 mb-4">Beneficios de hacer tu práctica con nosotros</h3>
+              <div className="space-y-4">
+                <div className="flex items-start space-x-3">
+                  <Users className="w-5 h-5 mt-1" style={{color: '#A7C7E7'}} />
+                  <p className="text-gray-600">Experiencia real trabajando con comunidades vulnerables</p>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <BookOpen className="w-5 h-5 mt-1" style={{color: '#B5EAD7'}} />
+                  <p className="text-gray-600">Aplicación práctica de conocimientos teóricos</p>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <Brain className="w-5 h-5 mt-1" style={{color: '#FFDAB3'}} />
+                  <p className="text-gray-600">Desarrollo de habilidades profesionales y personales</p>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <GraduationCap className="w-5 h-5 mt-1" style={{color: '#D7BDE2'}} />
+                  <p className="text-gray-600">Supervisión profesional y retroalimentación constante</p>
+                </div>
               </div>
             </div>
 
-            <div className="bg-blue-50 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-3">Requisitos</h3>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li>• Estar cursando los últimos semestres de carrera</li>
-                <li>• Disponibilidad mínima de 20 horas semanales</li>
-                <li>• Compromiso y responsabilidad</li>
-                <li>• Interés genuino en el trabajo social</li>
-              </ul>
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h3 className="text-xl font-bold text-gray-800 mb-4">Áreas Disponibles</h3>
+              <div className="space-y-3">
+                <div className="flex items-center space-x-3">
+                  <BookOpen className="w-5 h-5" style={{color: '#A7C7E7'}} />
+                  <div>
+                    <p className="font-medium text-gray-800">Educación</p>
+                    <p className="text-sm text-gray-600">Apoyo pedagógico y reforzamiento</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <Brain className="w-5 h-5" style={{color: '#B5EAD7'}} />
+                  <div>
+                    <p className="font-medium text-gray-800">Psicología</p>
+                    <p className="text-sm text-gray-600">Apoyo psicológico y evaluación</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <Users className="w-5 h-5" style={{color: '#FFDAB3'}} />
+                  <div>
+                    <p className="font-medium text-gray-800">Trabajo Social</p>
+                    <p className="text-sm text-gray-600">Intervención social y familiar</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <Activity className="w-5 h-5" style={{color: '#D7BDE2'}} />
+                  <div>
+                    <p className="font-medium text-gray-800">Otra</p>
+                    <p className="text-sm text-gray-600">Especifica tu área de estudio</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Formulario de práctica */}
+          {/* Formulario */}
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg shadow-lg p-8">
-              <h2 className="text-2xl font-bold text-gray-800 mb-6">Solicitud de Práctica Profesional</h2>
+              <h2 className="text-2xl font-bold text-gray-800 mb-8">Formulario de Postulación</h2>
               
-              {submitStatus === 'success' && (
-                <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-                  <p className="text-green-800">¡Solicitud enviada exitosamente! Revisaremos tu postulación y te contactaremos pronto.</p>
-                </div>
-              )}
-
-              {submitStatus === 'error' && (
-                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-red-800">Hubo un error al enviar la solicitud. Por favor, intenta nuevamente.</p>
-                </div>
-              )}
-
               <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Información personal */}
+                {/* Información Personal */}
                 <div>
                   <h3 className="text-lg font-semibold text-gray-800 mb-4">Información Personal</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label htmlFor="nombre" className="block text-sm font-medium text-gray-700 mb-2">
                         Nombre *
@@ -198,11 +218,10 @@ const Practica = () => {
                         value={formData.nombre}
                         onChange={handleChange}
                         required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         placeholder="Tu nombre"
                       />
                     </div>
-
                     <div>
                       <label htmlFor="apellido" className="block text-sm font-medium text-gray-700 mb-2">
                         Apellido *
@@ -214,27 +233,10 @@ const Practica = () => {
                         value={formData.apellido}
                         onChange={handleChange}
                         required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         placeholder="Tu apellido"
                       />
                     </div>
-
-                    <div>
-                      <label htmlFor="rut" className="block text-sm font-medium text-gray-700 mb-2">
-                        RUT *
-                      </label>
-                      <input
-                        type="text"
-                        id="rut"
-                        name="rut"
-                        value={formData.rut}
-                        onChange={handleChange}
-                        required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                        placeholder="12.345.678-9"
-                      />
-                    </div>
-
                     <div>
                       <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                         Email *
@@ -246,11 +248,10 @@ const Practica = () => {
                         value={formData.email}
                         onChange={handleChange}
                         required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         placeholder="tu@email.com"
                       />
                     </div>
-
                     <div>
                       <label htmlFor="telefono" className="block text-sm font-medium text-gray-700 mb-2">
                         Teléfono *
@@ -262,17 +263,34 @@ const Practica = () => {
                         value={formData.telefono}
                         onChange={handleChange}
                         required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         placeholder="+56 9 1234 5678"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="edad" className="block text-sm font-medium text-gray-700 mb-2">
+                        Edad *
+                      </label>
+                      <input
+                        type="number"
+                        id="edad"
+                        name="edad"
+                        value={formData.edad}
+                        onChange={handleChange}
+                        required
+                        min="18"
+                        max="35"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="22"
                       />
                     </div>
                   </div>
                 </div>
 
-                {/* Información académica */}
+                {/* Información Académica */}
                 <div>
                   <h3 className="text-lg font-semibold text-gray-800 mb-4">Información Académica</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label htmlFor="universidad" className="block text-sm font-medium text-gray-700 mb-2">
                         Universidad/Instituto *
@@ -284,11 +302,10 @@ const Practica = () => {
                         value={formData.universidad}
                         onChange={handleChange}
                         required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         placeholder="Nombre de tu institución"
                       />
                     </div>
-
                     <div>
                       <label htmlFor="carrera" className="block text-sm font-medium text-gray-700 mb-2">
                         Carrera *
@@ -300,14 +317,13 @@ const Practica = () => {
                         value={formData.carrera}
                         onChange={handleChange}
                         required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                        placeholder="Nombre de tu carrera"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Tu carrera"
                       />
                     </div>
-
                     <div>
                       <label htmlFor="semestre" className="block text-sm font-medium text-gray-700 mb-2">
-                        Semestre/Año actual *
+                        Semestre/Año *
                       </label>
                       <input
                         type="text"
@@ -316,226 +332,266 @@ const Practica = () => {
                         value={formData.semestre}
                         onChange={handleChange}
                         required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                        placeholder="Ej: 8vo semestre, 4to año"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="5to semestre"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Información de la Práctica */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Información de la Práctica</h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label htmlFor="area" className="block text-sm font-medium text-gray-700 mb-2">
+                        Área de Práctica *
+                      </label>
+                      <select
+                        id="area"
+                        name="area"
+                        value={formData.area}
+                        onChange={handleChange}
+                        required
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="">Selecciona un área</option>
+                        <option value="educacion">Educación</option>
+                        <option value="psicologia">Psicología</option>
+                        <option value="trabajo-social">Trabajo Social</option>
+                        <option value="otra">Otra</option>
+                      </select>
+                    </div>
+
+                    {formData.area === 'otra' && (
+                      <div>
+                        <label htmlFor="otraArea" className="block text-sm font-medium text-gray-700 mb-2">
+                          Especifica tu área *
+                        </label>
+                        <input
+                          type="text"
+                          id="otraArea"
+                          name="otraArea"
+                          value={formData.otraArea}
+                          onChange={handleChange}
+                          required
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="Especifica tu área de estudio"
+                        />
+                      </div>
+                    )}
+
+                    <div>
+                      <label htmlFor="horasRequeridas" className="block text-sm font-medium text-gray-700 mb-2">
+                        Horas de práctica requeridas *
+                      </label>
+                      <input
+                        type="number"
+                        id="horasRequeridas"
+                        name="horasRequeridas"
+                        value={formData.horasRequeridas}
+                        onChange={handleChange}
+                        required
+                        min="100"
+                        max="1000"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="240"
                       />
                     </div>
 
                     <div>
-                      <label htmlFor="area_practica" className="block text-sm font-medium text-gray-700 mb-2">
-                        Área de práctica *
+                      <label htmlFor="fechaInicio" className="block text-sm font-medium text-gray-700 mb-2">
+                        Fecha de inicio *
                       </label>
-                      <select
-                        id="area_practica"
-                        name="area_practica"
-                        value={formData.area_practica}
+                      <input
+                        type="date"
+                        id="fechaInicio"
+                        name="fechaInicio"
+                        value={formData.fechaInicio}
                         onChange={handleChange}
                         required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="fechaTermino" className="block text-sm font-medium text-gray-700 mb-2">
+                        Fecha de término *
+                      </label>
+                      <input
+                        type="date"
+                        id="fechaTermino"
+                        name="fechaTermino"
+                        value={formData.fechaTermino}
+                        onChange={handleChange}
+                        required
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="horario" className="block text-sm font-medium text-gray-700 mb-2">
+                        Horario preferido *
+                      </label>
+                      <select
+                        id="horario"
+                        name="horario"
+                        value={formData.horario}
+                        onChange={handleChange}
+                        required
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       >
-                        <option value="">Selecciona un área</option>
-                        {areasPractica.map((area) => (
-                          <option key={area} value={area}>{area}</option>
-                        ))}
+                        <option value="">Selecciona un horario</option>
+                        <option value="mañana">Mañana (9:00 - 13:00)</option>
+                        <option value="tarde">Tarde (14:00 - 18:00)</option>
+                        <option value="jornada-completa">Jornada completa</option>
+                        <option value="flexible">Horario flexible</option>
                       </select>
                     </div>
                   </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Días disponibles *
+                    </label>
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+                      {['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'].map((dia) => (
+                        <label key={dia} className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            name="dias"
+                            value={dia}
+                            checked={formData.dias.includes(dia)}
+                            onChange={handleChange}
+                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          />
+                          <span className="text-sm text-gray-700">{dia}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
                 </div>
 
-                {/* Información de la práctica */}
+                {/* Documentos */}
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Detalles de la Práctica</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Documentos</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label htmlFor="duracion" className="block text-sm font-medium text-gray-700 mb-2">
-                        Duración (semanas) *
+                      <label htmlFor="curriculum" className="block text-sm font-medium text-gray-700 mb-2">
+                        Currículum Vitae *
                       </label>
-                      <input
-                        type="number"
-                        id="duracion"
-                        name="duracion"
-                        value={formData.duracion}
-                        onChange={handleChange}
-                        required
-                        min="8"
-                        max="24"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                        placeholder="12"
-                      />
+                      <div className="flex items-center space-x-4">
+                        <label className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                          <Upload className="w-5 h-5 text-gray-500" />
+                          <span className="text-sm text-gray-700">Elegir archivo</span>
+                          <input
+                            type="file"
+                            id="curriculum"
+                            name="curriculum"
+                            onChange={handleChange}
+                            accept=".pdf,.doc,.docx"
+                            className="hidden"
+                            required
+                          />
+                        </label>
+                        {formData.curriculum && (
+                          <span className="text-sm text-gray-600">{formData.curriculum.name}</span>
+                        )}
+                      </div>
                     </div>
 
                     <div>
-                      <label htmlFor="horas_semanales" className="block text-sm font-medium text-gray-700 mb-2">
-                        Horas semanales *
+                      <label htmlFor="cartaPresentacion" className="block text-sm font-medium text-gray-700 mb-2">
+                        Carta de Presentación
                       </label>
-                      <input
-                        type="number"
-                        id="horas_semanales"
-                        name="horas_semanales"
-                        value={formData.horas_semanales}
-                        onChange={handleChange}
-                        required
-                        min="20"
-                        max="44"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                        placeholder="30"
-                      />
-                    </div>
-
-                    <div>
-                      <label htmlFor="fecha_inicio" className="block text-sm font-medium text-gray-700 mb-2">
-                        Fecha de inicio preferida *
-                      </label>
-                      <input
-                        type="date"
-                        id="fecha_inicio"
-                        name="fecha_inicio"
-                        value={formData.fecha_inicio}
-                        onChange={handleChange}
-                        required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                      />
-                    </div>
-
-                    <div>
-                      <label htmlFor="fecha_termino" className="block text-sm font-medium text-gray-700 mb-2">
-                        Fecha de término estimada *
-                      </label>
-                      <input
-                        type="date"
-                        id="fecha_termino"
-                        name="fecha_termino"
-                        value={formData.fecha_termino}
-                        onChange={handleChange}
-                        required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                      />
+                      <div className="flex items-center space-x-4">
+                        <label className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                          <Upload className="w-5 h-5 text-gray-500" />
+                          <span className="text-sm text-gray-700">Elegir archivo</span>
+                          <input
+                            type="file"
+                            id="cartaPresentacion"
+                            name="cartaPresentacion"
+                            onChange={handleChange}
+                            accept=".pdf,.doc,.docx"
+                            className="hidden"
+                          />
+                        </label>
+                        {formData.cartaPresentacion && (
+                          <span className="text-sm text-gray-600">{formData.cartaPresentacion.name}</span>
+                        )}
+                      </div>
                     </div>
                   </div>
+                  <p className="text-xs text-gray-500 mt-2">Formatos permitidos: PDF, DOC, DOCX. Tamaño máximo: 5MB</p>
                 </div>
 
-                {/* Supervisor académico */}
+                {/* Información Adicional */}
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Supervisor Académico</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Información Adicional</h3>
+                  <div className="space-y-4">
                     <div>
-                      <label htmlFor="supervisor_academico" className="block text-sm font-medium text-gray-700 mb-2">
-                        Nombre del supervisor *
+                      <label htmlFor="experiencia" className="block text-sm font-medium text-gray-700 mb-2">
+                        Experiencia previa relevante
                       </label>
-                      <input
-                        type="text"
-                        id="supervisor_academico"
-                        name="supervisor_academico"
-                        value={formData.supervisor_academico}
+                      <textarea
+                        id="experiencia"
+                        name="experiencia"
+                        value={formData.experiencia}
                         onChange={handleChange}
-                        required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                        placeholder="Nombre completo del supervisor"
+                        rows={3}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                        placeholder="Describe tu experiencia previa relevante..."
                       />
                     </div>
 
                     <div>
-                      <label htmlFor="email_supervisor" className="block text-sm font-medium text-gray-700 mb-2">
-                        Email del supervisor *
+                      <label htmlFor="objetivos" className="block text-sm font-medium text-gray-700 mb-2">
+                        Objetivos de la práctica *
                       </label>
-                      <input
-                        type="email"
-                        id="email_supervisor"
-                        name="email_supervisor"
-                        value={formData.email_supervisor}
+                      <textarea
+                        id="objetivos"
+                        name="objetivos"
+                        value={formData.objetivos}
                         onChange={handleChange}
                         required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                        placeholder="supervisor@universidad.cl"
+                        rows={3}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                        placeholder="¿Qué esperas lograr con esta práctica?"
                       />
                     </div>
-                  </div>
-                </div>
 
-                {/* Información adicional */}
-                <div className="space-y-6">
-                  <div>
-                    <label htmlFor="objetivos" className="block text-sm font-medium text-gray-700 mb-2">
-                      Objetivos de aprendizaje *
-                    </label>
-                    <textarea
-                      id="objetivos"
-                      name="objetivos"
-                      value={formData.objetivos}
-                      onChange={handleChange}
-                      required
-                      rows={4}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
-                      placeholder="Describe qué esperas aprender durante tu práctica..."
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="habilidades" className="block text-sm font-medium text-gray-700 mb-2">
-                      Habilidades y conocimientos relevantes
-                    </label>
-                    <textarea
-                      id="habilidades"
-                      name="habilidades"
-                      value={formData.habilidades}
-                      onChange={handleChange}
-                      rows={3}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
-                      placeholder="Menciona habilidades, software, idiomas u otros conocimientos relevantes..."
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="motivacion" className="block text-sm font-medium text-gray-700 mb-2">
-                      ¿Por qué quieres hacer tu práctica en nuestra fundación? *
-                    </label>
-                    <textarea
-                      id="motivacion"
-                      name="motivacion"
-                      value={formData.motivacion}
-                      onChange={handleChange}
-                      required
-                      rows={4}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
-                      placeholder="Cuéntanos qué te motiva a realizar tu práctica con nosotros..."
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="disponibilidad" className="block text-sm font-medium text-gray-700 mb-2">
-                      Disponibilidad horaria *
-                    </label>
-                    <textarea
-                      id="disponibilidad"
-                      name="disponibilidad"
-                      value={formData.disponibilidad}
-                      onChange={handleChange}
-                      required
-                      rows={2}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
-                      placeholder="Indica tu disponibilidad de días y horarios..."
-                    />
+                    <div>
+                      <label htmlFor="conocimientos" className="block text-sm font-medium text-gray-700 mb-2">
+                        Conocimientos y habilidades relevantes
+                      </label>
+                      <textarea
+                        id="conocimientos"
+                        name="conocimientos"
+                        value={formData.conocimientos}
+                        onChange={handleChange}
+                        rows={3}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                        placeholder="Describe tus conocimientos y habilidades que puedan ser útiles..."
+                      />
+                    </div>
                   </div>
                 </div>
 
                 <button
                   type="submit"
-                  disabled={isSubmitting}
-                  className="w-full bg-primary hover:bg-blue-600 text-white font-medium py-3 px-6 rounded-lg transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full flex items-center justify-center px-6 py-3 text-white font-medium rounded-lg transition-colors"
+                  style={{backgroundColor: '#B5EAD7', '&:hover': {backgroundColor: '#9DD4C4'}}}
                 >
-                  {isSubmitting ? (
-                    <>
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                      Enviando solicitud...
-                    </>
-                  ) : (
-                    <>
-                      <Send className="w-5 h-5 mr-2" />
-                      Enviar Solicitud
-                    </>
-                  )}
+                  <Send className="w-5 h-5 mr-2" />
+                  Enviar Postulación
                 </button>
               </form>
+
+              <p className="text-sm text-gray-500 mt-4">
+                * Campos obligatorios. Revisaremos tu postulación y nos pondremos en contacto contigo para coordinar una entrevista.
+              </p>
             </div>
           </div>
         </div>
