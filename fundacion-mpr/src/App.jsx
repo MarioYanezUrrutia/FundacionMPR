@@ -1,11 +1,12 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Home from './pages/Home';
-import Noticias from './pages/Noticias';
-import NoticiaDetalle from './pages/NoticiaDetalle';
-import Contacto from './pages/Contacto';
-import Voluntariado from './pages/Voluntariado';
-import Practica from './pages/Practica';
+import Home from './components/Home';
+import Noticias from './components/Noticias';
+import NoticiaDetalle from './components/NoticiaDetalle';
+import Contacto from './components/Contacto';
+import Voluntariado from './components/Voluntariado';
+import Practica from './components/Practica';
+import Donaciones from './components/Donaciones';
 import './App.css';
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
           <Route path="/contacto" element={<Contacto />} />
           <Route path="/voluntariado" element={<Voluntariado />} />
           <Route path="/practica" element={<Practica />} />
+          <Route path="/donaciones" element={<Donaciones />} />
         </Routes>
       </div>
     </Router>
